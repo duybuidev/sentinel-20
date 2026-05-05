@@ -55,3 +55,6 @@ func (s *ContainerService) GetSummary() (map[string]interface{}, error) {
 		"dead":    dead,
 	}, nil
 }
+func (s *ContainerService) GetByName(name string) (*model.Container, error) {
+	return s.repo.FindByName(name)
+}

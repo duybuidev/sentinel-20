@@ -60,6 +60,14 @@ func main() {
 		v1.GET("/logs/stats", logH.GetStats)
 
 		v1.GET("/events", eventH.GetRecent)
+
+		internal := r.Group("/api/v1/internal")
+	{
+		internalH := handler.NewInternalHandler(containerSvc, eventSvc)
+		internal.POST("/containers/sync", internalH.SyncContainer)
+		internal.POST("/events",          internalH.CreateEvent)
+	}
+
 	}
 
 	log.Printf("🚀 Sentinel API running on :%s", cfg.AppPort)

@@ -47,3 +47,9 @@ func (r *ContainerRepository) UpdateStatus(name, status string) error {
 	_, err := r.db.Exec(query, status, name)
 	return err
 }
+func (r *ContainerRepository) FindByName(name string) (*model.Container, error) {
+	var container model.Container
+	query := `SELECT * FROM containers WHERE name = $1`
+	err := r.db.Get(&container, query, name)
+	return &container, err
+}

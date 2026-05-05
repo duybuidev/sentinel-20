@@ -3,13 +3,14 @@ package main
 import (
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 
+	"github.com/duybuidev/sentinel-20/api/internal/handler"
 	"github.com/duybuidev/sentinel-20/api/internal/repository"
+	"github.com/duybuidev/sentinel-20/api/internal/service"
 	"github.com/duybuidev/sentinel-20/api/pkg/config"
 )
 
@@ -25,9 +26,20 @@ func main() {
 	defer db.Close()
 	log.Println("✅ PostgreSQL connected")
 
+	// Repositories
 	containerRepo := repository.NewContainerRepository(db)
 	logRepo       := repository.NewLogRepository(db)
 	eventRepo     := repository.NewEventRepository(db)
+
+	// Services
+	containerSvc := service.NewContainerService(containerRepo)
+	logSvc       := service.NewLogService(logRepo)
+	eventSvc     := service.NewEventService(eventRepo)
+
+	// Handlers
+	containerH := handler.NewContainerHandler(containerSvc)
+	logH       := handler.NewLogHandler(logSvc)
+	eventH     := handler.NewEventHandler(eventSvc)
 
 	if cfg.AppEnv == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -40,47 +52,14 @@ func main() {
 
 	v1 := r.Group("/api/v1")
 	{
-		v1.GET("/containers", func(c *gin.Context) {
-			containers, err := containerRepo.FindAll()
-			if err != nil {
-				c.JSON(500, gin.H{"error": err.Error()})
-				return
-			}
-			c.JSON(200, gin.H{"data": containers, "total": len(containers)})
-		})
+		v1.GET("/containers",         containerH.GetAll)
+		v1.GET("/containers/summary", containerH.GetSummary)
+		v1.GET("/containers/:id",     containerH.GetByID)
 
-		v1.GET("/logs", func(c *gin.Context) {
-			limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
-			logs, err := logRepo.FindAll(repository.LogFilter{
-				Level:   c.Query("level"),
-				Service: c.Query("service"),
-				Limit:   limit,
-			})
-			if err != nil {
-				c.JSON(500, gin.H{"error": err.Error()})
-				return
-			}
-			c.JSON(200, gin.H{"data": logs, "total": len(logs)})
-		})
+		v1.GET("/logs",       logH.GetAll)
+		v1.GET("/logs/stats", logH.GetStats)
 
-		v1.GET("/logs/stats", func(c *gin.Context) {
-			stats, err := logRepo.CountByLevel()
-			if err != nil {
-				c.JSON(500, gin.H{"error": err.Error()})
-				return
-			}
-			c.JSON(200, gin.H{"data": stats})
-		})
-
-		v1.GET("/events", func(c *gin.Context) {
-			limit, _ := strconv.Atoi(c.DefaultQuery("limit", "50"))
-			events, err := eventRepo.FindRecent(limit)
-			if err != nil {
-				c.JSON(500, gin.H{"error": err.Error()})
-				return
-			}
-			c.JSON(200, gin.H{"data": events, "total": len(events)})
-		})
+		v1.GET("/events", eventH.GetRecent)
 	}
 
 	log.Printf("🚀 Sentinel API running on :%s", cfg.AppPort)

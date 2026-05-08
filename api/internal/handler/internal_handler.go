@@ -8,13 +8,15 @@ import (
 	"github.com/duybuidev/sentinel-20/api/internal/service"
 )
 
+
 type InternalHandler struct {
 	containerSvc *service.ContainerService
 	eventSvc     *service.EventService
+	logSvc       *service.LogService
 }
 
-func NewInternalHandler(containerSvc *service.ContainerService, eventSvc *service.EventService) *InternalHandler {
-	return &InternalHandler{containerSvc: containerSvc, eventSvc: eventSvc}
+func NewInternalHandler(containerSvc *service.ContainerService, eventSvc *service.EventService, logSvc *service.LogService) *InternalHandler {
+	return &InternalHandler{containerSvc: containerSvc, eventSvc: eventSvc, logSvc: logSvc}
 }
 
 func (h *InternalHandler) SyncContainer(c *gin.Context) {
@@ -73,6 +75,39 @@ func (h *InternalHandler) CreateEvent(c *gin.Context) {
 	}
 
 	if err := h.eventSvc.Insert(event); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+func (h *InternalHandler) CreateLog(c *gin.Context) {
+	var payload struct {
+		Level   string `json:"level"`
+		Message string `json:"message"`
+		Service string `json:"service"`
+	}
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Tìm container ID từ service name
+	container, err := h.containerSvc.GetByName(payload.Service)
+	if err != nil {
+		// Container chưa sync, bỏ qua
+		c.JSON(http.StatusOK, gin.H{"status": "skipped"})
+		return
+	}
+
+	logEntry := &model.Log{
+		ContainerID: container.ID,
+		Level:       payload.Level,
+		Message:     payload.Message,
+		Service:     payload.Service,
+	}
+
+	if err := h.logSvc.Insert(logEntry); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -63,7 +63,8 @@ func main() {
 
 		internal := r.Group("/api/v1/internal")
 	{
-		internalH := handler.NewInternalHandler(containerSvc, eventSvc)
+		internalH := handler.NewInternalHandler(containerSvc, eventSvc, logSvc)
+		internal.POST("/logs", internalH.CreateLog)
 		internal.POST("/containers/sync", internalH.SyncContainer)
 		internal.POST("/events",          internalH.CreateEvent)
 	}

@@ -167,6 +167,96 @@ services:
     networks:
       - sentinel-network
 
+
+      # ── Mock Ecosystem ────────────────────────────────────────
+  mock-payment:
+    build: ./mock-ecosystem/mock-services
+    container_name: mock-payment
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: mock-payment
+      SERVICE_PORT: "9001"
+      SENTINEL_API_URL: http://sentinel-api:8080
+    networks:
+      - sentinel-network
+
+  mock-inventory:
+    build: ./mock-ecosystem/mock-services
+    container_name: mock-inventory
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: mock-inventory
+      SERVICE_PORT: "9002"
+      SENTINEL_API_URL: http://sentinel-api:8080
+    networks:
+      - sentinel-network
+
+  mock-notification:
+    build: ./mock-ecosystem/mock-services
+    container_name: mock-notification
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: mock-notification
+      SERVICE_PORT: "9003"
+      SENTINEL_API_URL: http://sentinel-api:8080
+    networks:
+      - sentinel-network
+
+  mock-user:
+    build: ./mock-ecosystem/mock-services
+    container_name: mock-user
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: mock-user
+      SERVICE_PORT: "9004"
+      SENTINEL_API_URL: http://sentinel-api:8080
+    networks:
+      - sentinel-network
+
+  mock-analytics:
+    build: ./mock-ecosystem/mock-services
+    container_name: mock-analytics
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: mock-analytics
+      SERVICE_PORT: "9005"
+      SENTINEL_API_URL: http://sentinel-api:8080
+    networks:
+      - sentinel-network
+
+  mock-search:
+    build: ./mock-ecosystem/mock-services
+    container_name: mock-search
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: mock-search
+      SERVICE_PORT: "9006"
+      SENTINEL_API_URL: http://sentinel-api:8080
+    networks:
+      - sentinel-network
+
+  mock-billing:
+    build: ./mock-ecosystem/mock-services
+    container_name: mock-billing
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: mock-billing
+      SERVICE_PORT: "9007"
+      SENTINEL_API_URL: http://sentinel-api:8080
+    networks:
+      - sentinel-network
+
+  mock-email:
+    build: ./mock-ecosystem/mock-services
+    container_name: mock-email
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: mock-email
+      SERVICE_PORT: "9008"
+      SENTINEL_API_URL: http://sentinel-api:8080
+    networks:
+      - sentinel-network
+
 volumes:
   postgres_data:
   redis_data:

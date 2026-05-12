@@ -131,4 +131,4 @@ sentinel-20/
 
 ## License
 
-Thêm license của bạn tại đây (ví dụ MIT) nếu repo public.
+MIT
